@@ -1,18 +1,17 @@
 import socket
-from datetime import datetime
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtNetwork import QTcpServer, QHostAddress
 
-from client import Client
-from message import Message, Mode
-from client_info import ClientInfo
-from peermanager import PeerManager
+from source.client import Client
+from source.message import Message, Mode
+from source.client_info import ClientInfo
+from source.peermanager import PeerManager
 
 
 class Server(QTcpServer):
     has_new_message = pyqtSignal()
-    change_connections_cnt = pyqtSignal()  # TODO: when disconnect
+    change_connections_cnt = pyqtSignal()
 
     def __init__(self, name, port):
         super().__init__()
@@ -45,6 +44,10 @@ class Server(QTcpServer):
         self.connections[client.ip] = client
         self.change_connections_cnt.emit()
 
+
+        print('online', self.online.keys())
+        print('connections', self.connections.keys())
+
     def add_new_message(self, message):
         if message not in self.stored_messages:
             self.last_message = message
@@ -52,7 +55,6 @@ class Server(QTcpServer):
             self.has_new_message.emit()
 
     def send_all(self, message):
-
         for key in self.connections:
             self.connections[key].send(message)
 
@@ -67,10 +69,16 @@ class Server(QTcpServer):
         self.send_all(message)
         self.change_connections_cnt.emit()
 
+        print('online', self.online.keys())
+        print('connections', self.connections.keys())
+
     def remove_from_online(self, message):
         if message.content in self.online:
             self.online.pop(message.content)
             self.send_all(message)
+
+        print('online', self.online.keys())
+        print('connections', self.connections.keys())
 
     def get_ip(self):
         return socket.gethostbyname(socket.gethostname())
@@ -84,15 +92,24 @@ class Server(QTcpServer):
             self.send_all(message)
             self.peer_manager.update_connections(self.online)
 
-    def _update_client_info(self):
+        print('online', self.online.keys())
+        print('connections', self.connections.keys())
+
+    def update_client_info(self):
         self.client_info.update_incidents_cnt(len(self.connections))
         ip = self.get_ip()
         message = Message(ip, self.client_info, Mode.Online)
         self.send_all(message)
 
+        print('online', self.online.keys())
+        print('connections', self.connections.keys())
+
     def merge_online(self, message):
         online = message.content
         for ip in online:
-            if ip not in self.online or online[ip].update_time > online[ip].update_time:
+            if ip not in self.online or online[ip].update_time > self.online[ip].update_time:
                 self.online[ip] = online[ip]
         self.peer_manager.update_connections(self.online)
+
+        print('online', self.online.keys())
+        print('connections', self.connections.keys())

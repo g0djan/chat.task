@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QObject
 
-from message import Message, Mode
+from source.message import Message, Mode
 
 
 class Client(QObject):

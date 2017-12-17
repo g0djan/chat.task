@@ -1,10 +1,8 @@
 from PyQt5 import QtWidgets
-from PyQt5.QtNetwork import QTcpSocket
 
-from client import Client
-from connection_window import ConnectionWindow
-from message import Message, Mode
-from server import Server
+from source.connection_window import ConnectionWindow
+from source.message import Message, Mode
+from source.server import Server
 
 
 class ChatWindow(QtWidgets.QMainWindow):
@@ -59,7 +57,9 @@ class ChatWindow(QtWidgets.QMainWindow):
         self.server.peer_manager.set_connection(ip, port)
 
     def _send(self):
-        message = Message(self.server.client_info.ip, self.server.client_info.name + ':' + self._input.text(), Mode.Normal)
+        ip = self.server.client_info.ip
+        content = self.server.client_info.name + ':' + self._input.text()
+        message = Message(ip, content, Mode.Normal)
         self.server.add_new_message(message)
         self._input.setText('')
 

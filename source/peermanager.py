@@ -1,9 +1,9 @@
 from PyQt5.QtNetwork import QTcpSocket
 
-from client import Client
-from message import Message, Mode
+from source.client import Client
+from source.message import Message, Mode
 
-OPTIMAL_CONNECT_NUMBER = 4
+OPTIMAL_CONNECT_NUMBER = 3
 
 PORT = 12345
 
@@ -24,17 +24,21 @@ class PeerManager:
             if ip != self.server.get_ip() and ip not in self.server.connections:
                 self.set_connection(ip, self.server.port)
             i += 1
-        self.server._update_client_info()
+        self.server.update_client_info()
 
     def set_connection(self, ip, port):
         socket = QTcpSocket()
         self.last_client = Client(ip, port, socket, self.server)
-        socket.connected.connect(self.share_data)
-        # socket.readyRead.connect(self.add_client)
+        socket.connected.connect(self._share_data)
         self.last_client.connect()
 
-    def share_data(self):
-        self.last_client.socket.connected.disconnect(self.share_data)
+    def add_client(self, message):
+        if message.mode == Mode.Neighb and message.sender_ip not in self.server.connections:
+            self.server.add_client(self.last_client)
+            self.server.merge_online(message)
+
+    def _share_data(self):
+        self.last_client.socket.connected.disconnect(self._share_data)
         if len(self.server.connections) >= OPTIMAL_CONNECT_NUMBER:
             self.last_client.socket.disconnectFromHost()
             return
@@ -43,11 +47,3 @@ class PeerManager:
             return
         message = Message(self.server.get_ip(), self.server.online, Mode.Neighb)
         self.last_client.send(message)
-
-
-    def add_client(self, message):
-        # message = self.last_client.recieve()  # TODO: change recieve
-        if message.mode == Mode.Neighb and message.sender_ip not in self.server.connections:
-            self.server.add_client(self.last_client)
-            self.server.merge_online(message)  # TODO: check and repair method maybe it should be merge with time
-        # self.last_client.socket.readyRead.disconnect(self.add_client)

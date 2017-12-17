@@ -1,7 +1,7 @@
 import sys
 from PyQt5 import QtWidgets
 
-from chat_window import ChatWindow
+from source.chat_window import ChatWindow
 
 
 def main():
