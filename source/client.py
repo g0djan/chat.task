@@ -50,7 +50,7 @@ class Client(QObject):
         self.socket.write(data)
 
     def try_get_message(self, bytes):
-        keys = ['all', self.server.cryptographer.key]
+        keys = ['all', self.server.client_info.name]
         for key in keys:
             decrypted = self.server.cryptographer.decrypt(bytes, key)
             try:

@@ -12,6 +12,9 @@ class ClientInfo:
         self.incidents_cnt = incidents_cnt
         self.update_time = datetime.today()
 
+    def change_name(self, name):
+        self.name = name
+
     def __eq__(self, other):
         return (self.name, self.ip, self.incidents_cnt, self.update_time) == \
                (other.name, other.ip, other.incidents_cnt, other.update_time)

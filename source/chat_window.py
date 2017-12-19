@@ -1,9 +1,10 @@
+import os
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QDir
 from PyQt5.QtWidgets import QFileDialog
 
 from source.connection_window import ConnectionWindow
-from source.file_worker import FileWorker, File
+from source.file_worker import File
 from source.message import Message, Mode
 from source.server import Server
 
@@ -27,28 +28,56 @@ class ChatWindow(QtWidgets.QMainWindow):
         self.resize(800, 600)
 
     def _add_controls(self):
-        self._input = QtWidgets.QLineEdit()
-        self._send_file_button = QtWidgets.QPushButton('&Send file')
-        self._send_button = QtWidgets.QPushButton('&Send')
         self._messages = QtWidgets.QTextEdit()
-        self._online = QtWidgets.QTextEdit()
         self._messages.setReadOnly(True)
+        self._input = QtWidgets.QTextEdit()
+        self._input.setFixedHeight(23)
+        self._send_button = QtWidgets.QPushButton('&Send')
+        self._send_button.setFixedHeight(25)
+        self._send_button.setEnabled(False)
+        self._input.textChanged.connect(self._enable_send_button)
+        self._change_nick_label = QtWidgets.QLabel('Change nickname')
+        self._change_nick_label.setFixedWidth(100)
+        self._change_nick_button = QtWidgets.QPushButton('&Change')
+        self._change_nick_button.setEnabled(False)
+        self._change_nick = QtWidgets.QLineEdit()
+        self._change_nick.setFixedWidth(200)
+        self._change_nick.textEdited.connect(self._enable_change_button)
+        self._change_nick.returnPressed.connect(self._change_nick_button.click)
+        self._change_nick_button.clicked.connect(self._change_nickname)
+        self._online = QtWidgets.QTextEdit()
         self._online.setReadOnly(True)
         self._online.setFixedWidth(200)
+        self._send_file_button = QtWidgets.QPushButton('&Send file')
+        self._send_file_button.setFixedHeight(25)
+
+    def _enable_send_button(self):
+        self._send_button.setEnabled(bool(self._input.toPlainText()))
+
+    def _enable_change_button(self, text):
+        self._change_nick_button.setEnabled(bool(text))
 
     def _set_event_reactions(self):
-        self._input.returnPressed.connect(self._send_button.click)
+        # self._input.returnPressed.connect(self._send_button.click)
         self._send_button.clicked.connect(self._send)
         self._send_file_button.clicked.connect(self._send_file)
+
+    def _change_nickname(self):
+        self.server.client_info.change_name(self._change_nick.text())
+        self.server.update_client_info()
+        self._change_nick.setText('')
 
     def _get_layout(self):
         layout = QtWidgets.QGridLayout()
         layout.setSpacing(5)
-        layout.addWidget(self._online, 0, 2, 1, 1)
-        layout.addWidget(self._messages, 0, 0, 1, 2)
-        layout.addWidget(self._input, 1, 0)
-        layout.addWidget(self._send_button, 1, 1)
-        layout.addWidget(self._send_file_button, 1, 2)
+        layout.addWidget(self._messages, 0, 0, 3, 2)
+        layout.addWidget(self._input, 3, 0)
+        layout.addWidget(self._send_button, 3, 1)
+        layout.addWidget(self._change_nick_label, 0, 2)
+        layout.addWidget(self._change_nick_button, 0, 3)
+        layout.addWidget(self._change_nick, 1, 2, 1, 2)
+        layout.addWidget(self._online, 2, 2, 1, 2)
+        layout.addWidget(self._send_file_button, 3, 2, 1, 2)
         layout.setColumnStretch(2, 1)
         return layout
 
@@ -56,6 +85,8 @@ class ChatWindow(QtWidgets.QMainWindow):
         if self.server.last_message.mode != Mode.Normal:
             return
         message = self.server.last_message.content
+        with open(os.path.join('logs', 'log'), 'a') as f:
+            f.write(message + '\n')
         self._messages.append(message)
 
     def _connect(self):
@@ -77,12 +108,12 @@ class ChatWindow(QtWidgets.QMainWindow):
         self._input.setText('')
 
     def _get_recipient(self):
-        parts = self._input.text().split(':', 1)
+        parts = self._input.toPlainText().split(':', 1)
         if len(parts) == 1:
-            return 'all', self._input.text()
+            return 'all', self._input.toPlainText()
         if parts[0][:3] == 'to ':
             return parts[0][3:], parts[1]
-        return 'all', self._input.text()
+        return 'all', self._input.toPlainText()
 
     def _set_connection_status(self):
         if len(self.server.connections.keys()) == 0:
@@ -114,10 +145,16 @@ class ChatWindow(QtWidgets.QMainWindow):
         return QFileDialog.getExistingDirectory(self, 'Choose directory', QDir.currentPath())
 
     def say_he_is_online(self, name):
-        self._messages.append('meet the ' + name + ', he is online')
+        text = 'meet the ' + name + ', he is online'
+        with open(os.path.join('logs', 'log'), 'a') as f:
+            f.write(text + '\n')
+        self._messages.append(text + '\n')
 
     def say_he_is_offline(self, name):
-        self._messages.append('Bye! Bye! ' + name + ' is offline')
+        text = 'Bye! Bye! ' + name + ' is offline'
+        with open(os.path.join('logs', 'log'), 'a') as f:
+            f.write(text + '\n')
+        self._messages.append(text)
 
     def refresh_online_and_connections(self, online, connections):
         info = 'online:\n'

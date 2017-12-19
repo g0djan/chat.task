@@ -27,11 +27,9 @@ class Server(QTcpServer):
         self.peer_manager = PeerManager(self)
         self.newConnection.connect(self.add_next_client)
         self.stored_messages = set()
-        self.online = {}
-        self.online[self.client_info.ip] = self.client_info
+        self.online = {self.client_info.ip: self.client_info}
         self.change_connections_cnt.connect(
             lambda: self.peer_manager.update_connections(self.online))
-        self.change_connections_cnt.connect(lambda: print(self.online.keys()))
 
     def add_next_client(self):
         connection = self.nextPendingConnection()
@@ -101,7 +99,6 @@ class Server(QTcpServer):
             self.send_all(message)
             self.peer_manager.update_connections(self.online)
         self.chat_window.refresh_online_and_connections(self.online, self.connections)
-
 
     def update_client_info(self):
         self.client_info.update_incidents_cnt(len(self.connections))
