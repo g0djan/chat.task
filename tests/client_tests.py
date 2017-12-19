@@ -10,5 +10,3 @@ class TestClient(unittest.TestCase):
         socket = QTcpSocket()
         socket.bind()
         socket.readAll()
-        client = Client('127.0.0.1',
-                        )

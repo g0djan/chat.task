@@ -11,6 +11,7 @@ class ConnectionWindow(QtWidgets.QDialog):
 
         self._buttons = QtWidgets.QDialogButtonBox(
             QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self._buttons.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(False)
 
         text_fields_layout = self.get_text_fields_layout()
 
@@ -21,6 +22,7 @@ class ConnectionWindow(QtWidgets.QDialog):
 
         self._buttons.accepted.connect(self.accept)
         self._buttons.rejected.connect(self.reject)
+        self.nickname.textEdited.connect(self.enable_ok_button)
 
         self.setWindowTitle('Start chat')
         self.setLayout(layout)
@@ -36,3 +38,5 @@ class ConnectionWindow(QtWidgets.QDialog):
         layout.addWidget(self.nickname, 2, 1)
         return layout
 
+    def enable_ok_button(self, text):
+        self._buttons.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(bool(text))
