@@ -48,7 +48,7 @@ __Summary__: 3 directories, 15 files, unknown line numer
 *```client_info.py``` ─ Содержит справлочную информацию о клиенте\
 *```file_worker.py```─ Cохраняет файлы\
 *```message.py``` ─ Отправляемое собщение\
-*```cryptographer.py``` ─ Шифрует и дешифрует сообщения\
+*```cryptographer.py``` ─ Шифрует и дешифрует сообщения
 
 # Запуск из терминала
 ./main.py
