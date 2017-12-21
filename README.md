@@ -1,3 +1,4 @@
+
 # p2p-chat
 Версия 1.0
 
@@ -12,6 +13,7 @@
 * PyQt5
 
 # Состав
+```
 ├── main.py
 ├── README.md
 ├── logs
@@ -31,6 +33,9 @@
     ├── peer_manager_tests.py
     ├── client_tests.py
     └── client_info_tests.py
+    
+__Summary__: 3 directories, 15 files, unknown line numer
+```
 ### logs 
 Сюда сохраняются логи переписки
 
