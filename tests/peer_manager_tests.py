@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from PyQt5.QtNetwork import QTcpSocket
 
@@ -12,7 +13,8 @@ class TestPeerManager(unittest.TestCase):
         # arrange
         self.ip = '127.0.0.1'
         self.port = 666
-        self.server = Server('dude', self.port)
+        with patch('source.server.Server') as mock:
+            self.server = Server('dude', 666, mock)
         self.client = Client(self.ip, self.port, QTcpSocket(), self.server)
         self.server.peer_manager.last_client = self.client
         self.online = {self.ip: self.server.client_info}

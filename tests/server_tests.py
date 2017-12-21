@@ -1,18 +1,22 @@
 import unittest
 
 import time
+from unittest.mock import patch
+
 from PyQt5.QtNetwork import QTcpSocket
 
+from source.chat_window import ChatWindow
 from source.client import Client
 from source.client_info import ClientInfo
-from source.message import Message, Mode
+from source.message import Message, Mode, MessageInfo
 from source.server import Server
 
 
 class ServerTest(unittest.TestCase):
     def test_add_client_to_connections(self):
         # arrange
-        server = Server('dude', 666)
+        with patch('source.server.Server') as mock:
+            server = Server('dude', 666, mock)
         client = Client('127.0.0.1', 666, QTcpSocket(), server)
 
         # act
@@ -23,20 +27,22 @@ class ServerTest(unittest.TestCase):
 
     def test_add_message_new_will_be_added(self):
         # arrange
-        server = Server('dude', 666)
+        with patch('source.server.Server') as mock:
+            server = Server('dude', 666, mock)
         message = Message('127.0.0.1', 'good news', Mode.Normal)
 
         # act
         server.add_new_message(message)
 
         # assert
-        self.assertTrue(message in server.stored_messages)
+        self.assertTrue(MessageInfo(message) in server.stored_messages)
 
     def test_add_message_old_wont_call_has_new_message(self):
         # arrange
-        server = Server('dude', 666)
+        with patch('source.server.Server') as mock:
+            server = Server('dude', 666, mock)
         message = Message('127.0.0.1', 'good news', Mode.Normal)
-        server.stored_messages.add(message)
+        server.stored_messages.add(MessageInfo(message))
         flag = False
 
         def change_flag():
@@ -53,7 +59,8 @@ class ServerTest(unittest.TestCase):
 
     def test_remove_from_online(self):
         # arrange
-        server = Server('dude', 666)
+        with patch('source.server.Server') as mock:
+            server = Server('dude', 666, mock)
         ip = '127.0.0.1'
         server.online[ip] = server.client_info
         message = Message(ip, ip, Mode.Offline)
@@ -66,7 +73,8 @@ class ServerTest(unittest.TestCase):
 
     def test_update_online_when_new_ip(self):
         # arrange
-        server = Server('dude', 666)
+        with patch('source.server.Server') as mock:
+            server = Server('dude', 666, mock)
         ip = '127.0.0.1'
         message = Message(ip, server.client_info, Mode.Online)
 
@@ -78,7 +86,8 @@ class ServerTest(unittest.TestCase):
 
     def test_update_online_when_actual_info(self):
         # arrange
-        server = Server('dude', 666)
+        with patch('source.server.Server') as mock:
+            server = Server('dude', 666, mock)
         ip = '127.0.0.1'
         old_client_info = ClientInfo('dude', ip, len(server.connections))
         time.sleep(1)
@@ -94,7 +103,8 @@ class ServerTest(unittest.TestCase):
 
     def test_update_client_info(self):
         # arrange
-        server = Server('dude', 666)
+        with patch('source.server.Server') as mock:
+            server = Server('dude', 666, mock)
         client = Client('127.0.0.1', 666, QTcpSocket(), server)
         server.connections[client.ip] = client
 
@@ -106,7 +116,8 @@ class ServerTest(unittest.TestCase):
 
     def test_merge_online_when_new_ip(self):
         # arrange
-        server = Server('dude', 666)
+        with patch('source.server.Server') as mock:
+            server = Server('dude', 666, mock)
         ip = '127.0.0.1'
         online = {ip: server.client_info}
         message = Message(ip, online, Mode.Neighb)
@@ -119,7 +130,8 @@ class ServerTest(unittest.TestCase):
 
     def test_merge_online_when_actual_info(self):
         # arrange
-        server = Server('dude', 666)
+        with patch('source.server.Server') as mock:
+            server = Server('dude', 666, mock)
         ip = server.client_info.ip
         old_client_info = ClientInfo('dude', ip, len(server.connections))
         time.sleep(1)
