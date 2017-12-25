@@ -1,6 +1,6 @@
 import os
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QDir
+from PyQt5.QtCore import QDir, QThread
 from PyQt5.QtWidgets import QFileDialog
 
 from source.connection_window import ConnectionWindow

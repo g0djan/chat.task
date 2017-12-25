@@ -1,6 +1,6 @@
 import socket
 
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QThread
 from PyQt5.QtNetwork import QTcpServer, QHostAddress
 
 from source.client import Client
@@ -25,26 +25,38 @@ class Server(QTcpServer):
         self.cryptographer = Cryptographer('utf-8', name)
         self.listen(QHostAddress.Any, 12345)
         self.peer_manager = PeerManager(self)
-        self.newConnection.connect(self.add_next_client)
+        #self.newConnection.connect(self.add_next_client)
         self.stored_messages = set()
         self.online = {self.client_info.ip: self.client_info}
         self.change_connections_cnt.connect(
             lambda: self.peer_manager.update_connections(self.online))
 
-    def add_next_client(self):
-        connection = self.nextPendingConnection()
-        ip = connection.peerAddress().toString()[7:]
-        port = connection.peerPort()
-        client = Client(ip, port, connection, self)
-        if ip in self.connections:
-            connection.disconnectFromHost()
-            return
-        client.send(Message(self.get_ip(), self.online, Mode.Neighb))
+    def incomingConnection(self, descriptor):
+        client = Client(descriptor, self)
+        #client.send(Message(self.get_ip(), self.online, Mode.Neighb))
         self.add_client(client)
 
+    # def add_next_client(self):
+    #     connection = self.nextPendingConnection()
+    #     ip = connection.peerAddress().toString()[7:]
+    #     port = connection.peerPort()
+    #     client = Client(ip, port, connection, self)
+    #     if ip in self.connections:
+    #         connection.disconnectFromHost()
+    #         return
+    #     client.send(Message(self.get_ip(), self.online, Mode.Neighb))
+    #     self.add_client(client)
+
     def add_client(self, client):
-        client.socket.disconnected.connect(lambda: self._remove_dead_connection(client))
+        client.socket = [client.start()][0]
+        client.start()
+        if client.ip in self.connections:
+            client.exit(0)
+            #client.socket.disconnectFromHost()
+            return
+        #client.socket.disconnected.connect(lambda: self._remove_dead_connection(client))
         self.connections[client.ip] = client
+        client.send(Message(self.get_ip(), self.online, Mode.Neighb))
         self.change_connections_cnt.emit()
         self.chat_window.refresh_online_and_connections(self.online, self.connections)
 
@@ -68,7 +80,7 @@ class Server(QTcpServer):
     def resend(self):
         self.send_all(self.last_message)
 
-    def _remove_dead_connection(self, client):
+    def remove_dead_connection(self, client):
         self.connections.pop(client.ip)
         if client.ip in self.online:
             self.chat_window.say_he_is_offline(self.online[client.ip].name)

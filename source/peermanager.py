@@ -1,3 +1,5 @@
+import threading
+
 from PyQt5.QtNetwork import QTcpSocket
 
 from source.client import Client
@@ -27,23 +29,28 @@ class PeerManager:
         self.server.update_client_info()
 
     def set_connection(self, ip, port):
-        socket = QTcpSocket()
-        self.last_client = Client(ip, port, socket, self.server)
-        socket.connected.connect(self._share_data)
-        self.last_client.connect()
+        self.last_socket = QTcpSocket()
+        #self.last_client = Client(ip, port, socket, self.server)
+
+        self.last_socket.connected.connect(self._share_data)
+        self.last_socket.connectToHost(ip, port)
+        #self.last_client.connect()
 
     def add_client(self, message):
         if message.mode == Mode.Neighb and message.sender_ip not in self.server.connections:
-            self.server.add_client(self.last_client)
+            #self.server.add_client(self.last_client)
             self.server.merge_online(message)
 
     def _share_data(self):
-        self.last_client.socket.connected.disconnect(self._share_data)
+        self.last_socket.connected.disconnect(self._share_data)
         if len(self.server.connections) >= OPTIMAL_CONNECT_NUMBER:
-            self.last_client.socket.disconnectFromHost()
+            self.last_socket.disconnectFromHost()
             return
-        if self.last_client.ip in self.server.connections:
-            self.last_client.socket.disconnectFromHost()
-            return
-        message = Message(self.server.get_ip(), self.server.online, Mode.Neighb)
-        self.last_client.send(message)
+        # if self.last_client.ip in self.server.connections:
+        #     self.last_client.socket.disconnectFromHost()
+        #     return
+        descriptor = self.last_socket.socketDescriptor()
+        client = Client(descriptor, self.server)
+        #message = Message(self.server.get_ip(), self.server.online, Mode.Neighb)
+        self.server.add_client(client)
+        #client.send(message)
