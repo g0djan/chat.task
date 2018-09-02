@@ -1,17 +1,19 @@
 # p2p-chat
-Версия 1.0
+Version: 1.0
+Author: Rylov Georgy
 
-Автор Рылов Георгий
+# Description
+Decentralized chat, with 4-connectivity
+* you can change the nickname at any time
+* send multi-line messages 
+* send private messages 
+* encryption.
 
-# Описание
-Децентрализованный чат, поддерживается ~4-связность, можно в любой момент менять ник,
-слать мультистрочные сообщения, отправлять приватные сообщения, шифрование.
-
-# Требования
+# Requirements
 * Python 3.7
 * PyQt5
 
-# Состав
+# Directory tree
 ```
 ├── main.py
 ├── README.md
@@ -33,35 +35,33 @@
     ├── client_tests.py
     └── client_info_tests.py
     
-__Summary__: 3 directories, 15 files, unknown line numer
+__Summary__: 3 directories, 15 files
 ```
 ### logs 
-Сюда сохраняются логи переписки
+Here are stored the logs of chat
 
 ### source
-```chat_window.py``` ─ Основное окно приложения\
-```connection_window.py``` ─ Окно подключения и ввода ника\
-```server.py``` ─ Поддерживает взаимодействие со всеми клиентами\
-```peermanager.py``` ─ Поддерживает граф чата 4-связным\
-```client.py``` ─ Принимает и отправляет сообщения\
-```client_info.py``` ─ Содержит справлочную информацию о клиенте\
-```file_worker.py```─ Cохраняет файлы\
-```message.py``` ─ Отправляемое собщение\
-```cryptographer.py``` ─ Шифрует и дешифрует сообщения
+```chat_window.py``` ─ Main app window\
+```connection_window.py```\
+```server.py``` ─ Receives messages from other chat participants and decides on further forwarding\
+```peermanager.py``` ─ Keep number of connections equal to 4(if it is possible)\
+```client.py``` ─ Send messages to chat\
+```client_info.py``` ─ Info about client\
+```file_worker.py```─ Keep files\
+```message.py```\
+```cryptographer.py``` ─ Encode and decode messages
 
-# Запуск из терминала
+# Run by terminal
 ./main.py
 
-# Подробности реализации
-Вначале менеджер соединений устанавливает необходимое количество соединений, после чего
-сервер отвечает за взаимодействие со всеми клиентами. Клиенты отвечают за передачу сообщений.
+# Implementation details
+First, the connection Manager sets the required number of connections, and then
+the server is responsible for communication with all clients. Clients are responsible for sending messages.
 
-# Как работать
-1. Ввести ip-адрес и порт к которым подключаемся.
-(Вот без ната на том что я тестил порты разные вообще смысла не имели хотя я их везде где могут понадобится передавал)
-потенциально в графе ip может быть какаято левая строка он просто к ней не подключится и будет ждать когда к нему законектятся
-2. Ввести непустой ник
-3. Нажать ок
-4. Можно менять ник в окне смены ника
-4. Чатится
- 
+# How to use
+1. Enter the ip address and port you want to connect to
+(Right now it works only in the local network, maybe once I'll learn how to remap ip addresess to router by NAT and it will work with Internet)
+also ip field can contain wrong string, it will be ignored and your app will wait when someone connect to you
+2. Enter a non-empty nick
+3. Press ok
+4. Start to chat(also you can change your nickname)
